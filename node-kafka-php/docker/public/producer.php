@@ -3,7 +3,7 @@ $conf = new RdKafka\Conf();
 $conf->set('log_level', (string) LOG_DEBUG);
 $conf->set('debug', 'all');
 $rk = new RdKafka\Producer($conf);
-$rk->addBrokers("localhost:9092");
+$rk->addBrokers("172.17.0.1:9092");
 $topic = $rk->newTopic("test");
 if (!$rk->getMetadata(false, $topic, 2000)) {
     echo "Failed to get metadata, is broker down?\n";
@@ -11,7 +11,7 @@ if (!$rk->getMetadata(false, $topic, 2000)) {
 }
 $messages = array("Payload Data");
 $i = 0;
-$interval = 5000;
+$interval = 5;
 $timerId = null;
 function sendMessage() {
     global $i, $messages, $topic;
@@ -19,15 +19,19 @@ function sendMessage() {
     
     $payloads = array(
         'topic' => $topic,
-        'messages' => "Payload Data"
+        'messages' => array(
+            array('key' => 'php-kafka', 'value' => json_encode($messages[$i]))
+        )
     );
-    $topic->produce(RD_KAFKA_PARTITION_UA, 0,$payloads);
+    $topic->produce(RD_KAFKA_PARTITION_UA, 0,json_encode($payloads));
     echo 'payloads=' . json_encode($payloads) . "\n";
 }
 
-$timerId = setInterval(function () {
+while (true) {
     sendMessage();
-}, $interval);
+    sleep($interval);
+}
+
 
 echo "Message published\n";
 ?>

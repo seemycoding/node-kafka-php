@@ -19,7 +19,9 @@ const sendMessage = async (producer, topic) => {
     i = i >= messages.length - 1 ? 0 : i + 1
     payloads = {
       topic: topic,
-      messages:"Payload Data"
+      messages:[
+        { key: 'node-kafka', value: JSON.stringify(messages[i]) }
+      ]
     }
     console.log('payloads=', payloads)
     producer.send(payloads)
